@@ -3,7 +3,7 @@
 #===================================
 import numpy as np
 import pandas as pd
-from matplotlib.pyplot import as plt
+from matplotlib import pyplot as plt
 #===================================
 # Inicialización
 #===================================
@@ -73,10 +73,11 @@ def backward_prop(Z1, A1, Z2, A2, W1, W2, X, Y):
 # Mejora de Parámetros
 #==================================
 def update_params(W1, b1, W2, b2, dW1, db1, dW2, db2, alpha):
-    W1 = w1 - alpha * dW1
+    W1 = W1 - alpha * dW1
     b1 = b1 - alpha * db1
     W2 = W2 - alpha * dW2
     b2 = b2 - alpha * db2
+    return W1, b1, W2, b2
 #==================================
 # Predicciones
 #==================================
@@ -105,6 +106,13 @@ def gradient_descent(X, Y, alpha, iterations):
 #==================================
 # Hacer Predicciones
 #==================================
+def make_predictions(X, W1, b1, W2, b2):
+    _, _, _, A2 = forward_prop(W1, b1, W2, b2, X)
+    predictions = get_predictions(A2)
+    return predictions
+#==================================
+# Evaluar Predicciones
+#==================================
 def test_prediction(index, W1, b1, W2, b2):
     current_image = X_train[:, index, None]
     prediction = make_predictions(X_train[:, index, None], W1, b1, W2, b2)
@@ -120,4 +128,31 @@ def test_prediction(index, W1, b1, W2, b2):
 #==================================
 if __name__ == "__main__":
     # Leer imágenes
-    data = pd.read_csv('train.csv')
+    data = pd.read_csv('Datos\\train.csv')
+    # Convertir a numpy y revolver imágenes
+    data = np.array(data)
+    m, n = data.shape
+    np.random.shuffle(data)
+    #==================================
+    # Separar Conjunto de Datos
+    # dev: prueba
+    # test: entrenamiento
+    #==================================
+    data_dev = data[0:1000].T
+    Y_dev = data_dev[0]
+    X_dev = data_dev[1:n]
+    X_dev = X_dev / 255.0
+    data_train = data[1000:m].T
+    Y_train = data_train[0]
+    X_train = data_train[1:n]
+    X_train = X_train / 255.0
+    _,m_train = X_train.shape
+    #==================================
+    # Entrenar a la Red
+    #==================================
+    W1, b1, W2, b2 = gradient_descent(X_train, Y_train, 0.10, 500)
+    #==================================
+    # Evaluar una serie de datos de prueba
+    #==================================
+    for i in range(10):
+        test_prediction(i, W1, b1, W2, b2)
